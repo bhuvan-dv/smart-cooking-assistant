@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.cooking</groupId>
+    <artifactId>smart-cooking-assistant</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Default exec args (can be overridden from command line) -->
+        <exec.args>interactive</exec.args>
+
+        <!-- Akka and related versions -->
+        <akka.version>2.6.20</akka.version>
+        <scala.binary.version>2.13</scala.binary.version>
+
+        <!-- Jackson versions - upgraded for Spring AI compatibility -->
+        <jackson.version>2.15.3</jackson.version>
+        <jackson.scala.version>2.15.3</jackson.scala.version>
+
+        <!-- Spring AI version -->
+        <spring-ai.version>0.8.1</spring-ai.version>
+        <spring-boot.version>3.2.0</spring-boot.version>
+
+        <!-- Other dependencies -->
+        <okhttp.version>4.9.3</okhttp.version>
+        <logback.version>1.2.11</logback.version>
+    </properties>
+
+    <!-- Spring AI BOM for version management -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Spring Boot BOM for transitive dependencies -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Akka Dependencies -->
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-cluster-typed_2.13</artifactId>
+            <version>2.6.20</version>
+        </dependency>
+
+        <!-- Akka Typed Actor -->
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor-typed_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+
+        <!-- Akka Cluster -->
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-cluster-typed_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+
+        <!-- Akka Serialization Jackson -->
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-serialization-jackson_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+
+        <!-- Jackson Core -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- Jackson Databind -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- Jackson Annotations -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- Jackson Scala Module (must match Akka's requirements) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_${scala.binary.version}</artifactId>
+            <version>${jackson.scala.version}</version>
+        </dependency>
+
+        <!-- Spring AI Ollama Support -->
+        <!-- Using the non-starter version to avoid full Spring Boot dependency -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-ollama</artifactId>
+            <version>${spring-ai.version}</version>
+            <exclusions>
+                <!-- Exclude conflicting logging -->
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Spring AI Core (required for base functionality) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-core</artifactId>
+            <version>${spring-ai.version}</version>
+            <exclusions>
+                <!-- Exclude conflicting logging -->
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Spring Web (required for RestTemplate used by Spring AI) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>6.1.0</version>
+        </dependency>
+
+        <!-- Spring Context (required for Spring AI) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>6.1.0</version>
+        </dependency>
+
+        <!-- Reactor Core (required for reactive streams in Spring AI) -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <version>3.6.0</version>
+        </dependency>
+
+        <!-- OkHttp (keeping for backward compatibility if needed) -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
+        </dependency>
+
+        <!-- Logging Dependencies -->
+        <!-- Logback Core (required) -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+        <!-- Logback Classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+        <!-- SLF4J API -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.36</version>
+        </dependency>
+
+        <!-- Janino (required for Logback conditional processing) -->
+        <dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+            <version>3.1.7</version>
+        </dependency>
+
+        <!-- JSON Processing (simpler alternative to Jackson when needed) -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
+    </dependencies>
+
+    <!-- Spring Repositories for AI artifacts -->
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <mainClass>com.cooking.Main</mainClass>
+                    <!-- exec.args is passed from command line, default to interactive mode -->
+                    <commandlineArgs>${exec.args}</commandlineArgs>
+                    <cleanupDaemonThreads>false</cleanupDaemonThreads>
+                    <systemProperties>
+                        <systemProperty>
+                            <key>logback.statusListenerClass</key>
+                            <value>ch.qos.logback.core.status.NopStatusListener</value>
+                        </systemProperty>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.cooking.Main</mainClass>
+                                </transformer>
+                                <!-- Handle Spring configuration files -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.handlers</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.schemas</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.factories</resource>
+                                </transformer>
+                            </transformers>
+                            <!-- Avoid dependency conflicts -->
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
